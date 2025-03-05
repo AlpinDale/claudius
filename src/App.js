@@ -13,6 +13,8 @@ const ClaudeUI = () => {
   const [showSettings, setShowSettings] = React.useState(false);
   const [modelEndpoint, setModelEndpoint] = React.useState('');
   const [apiKey, setApiKey] = React.useState('');
+  const [modelName, setModelName] = React.useState('No Model Available');
+  const [isModelLoading, setIsModelLoading] = React.useState(false);
   const textareaRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -33,6 +35,10 @@ const ClaudeUI = () => {
 
     if (savedModelEndpoint) setModelEndpoint(savedModelEndpoint);
     if (savedApiKey) setApiKey(savedApiKey);
+    
+    if (savedModelEndpoint && savedApiKey) {
+      fetchModelInfo(savedModelEndpoint, savedApiKey);
+    }
   }, []);
 
   const getTimeOfDay = () => {
@@ -67,6 +73,20 @@ const ClaudeUI = () => {
     e.preventDefault();
     if (username.trim()) {
       localStorage.setItem('claudius_username', username.trim());
+      
+      // Save API information if provided
+      if (modelEndpoint.trim()) {
+        localStorage.setItem('claudius_model_endpoint', modelEndpoint.trim());
+      }
+      if (apiKey.trim()) {
+        localStorage.setItem('claudius_api_key', apiKey.trim());
+      }
+      
+      // Fetch model info if both endpoint and API key are provided
+      if (modelEndpoint.trim() && apiKey.trim()) {
+        fetchModelInfo(modelEndpoint.trim(), apiKey.trim());
+      }
+      
       setShowDialog(false);
       animateWelcomeMessage(username.trim());
     }
@@ -93,6 +113,39 @@ const ClaudeUI = () => {
     }
   };
 
+  const fetchModelInfo = async (endpoint, key) => {
+    if (!endpoint || !key) return;
+    
+    setIsModelLoading(true);
+    try {
+      const modelsUrl = `${endpoint}/models`;
+      const response = await fetch(modelsUrl, {
+        method: 'GET',
+        headers: {
+          'Authorization': `Bearer ${key}`,
+          'Content-Type': 'application/json'
+        }
+      });
+      
+      if (!response.ok) {
+        throw new Error(`API request failed with status ${response.status}`);
+      }
+      
+      const data = await response.json();
+      
+      if (data.data && data.data.length > 0) {
+        setModelName(data.data[0].id);
+      } else {
+        setModelName('No Model Available');
+      }
+    } catch (error) {
+      console.error('Error fetching model info:', error);
+      setModelName('No Model Available');
+    } finally {
+      setIsModelLoading(false);
+    }
+  };
+
   const handleSettingsSave = (e) => {
     e.preventDefault();
 
@@ -113,6 +166,10 @@ const ClaudeUI = () => {
 
     localStorage.setItem('claudius_model_endpoint', modelEndpoint.trim());
     localStorage.setItem('claudius_api_key', apiKey.trim());
+    
+    if (modelEndpoint.trim() && apiKey.trim()) {
+      fetchModelInfo(modelEndpoint.trim(), apiKey.trim());
+    }
     
     setShowSettings(false);
   };
@@ -267,7 +324,9 @@ const ClaudeUI = () => {
 
               <div className="flex justify-between items-center">
                 <div className="flex items-center">
-                  <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>Meta-Llama-3.1-8B-Instruct</span>
+                  <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>
+                    {isModelLoading ? 'Loading model...' : modelName}
+                  </span>
                   <ChevronDown className="w-4 h-4 text-gray-400" />
                 </div>
                 <div className="flex items-center text-gray-400">
@@ -297,17 +356,48 @@ const ClaudeUI = () => {
               <span className="text-orange-300 mr-2">✻</span> Welcome to Claudius
             </h2>
             <form onSubmit={handleUsernameSubmit}>
-              <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
-                What's your name?
-              </label>
-              <input
-                type="text"
-                value={username}
-                onChange={(e) => setUsername(e.target.value)}
-                className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg mb-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
-                style={{ fontFamily: '__styreneA_dcab32' }}
-                autoFocus
-              />
+              <div className="mb-4">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  What's your name?
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg mb-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                  autoFocus
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  Model Endpoint
+                </label>
+                <input
+                  type="text"
+                  value={modelEndpoint}
+                  onChange={(e) => setModelEndpoint(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg mb-4 text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                  placeholder="https://api.example.com/v1"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                  placeholder="sk-..."
+                />
+              </div>
+              
               <button
                 type="submit"
                 className="w-full py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors flex items-center justify-center"
@@ -361,7 +451,7 @@ const ClaudeUI = () => {
                   onChange={(e) => setModelEndpoint(e.target.value)}
                   className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
                   style={{ fontFamily: '__styreneA_dcab32' }}
-                  placeholder="https://api.example.com/v1/chat/completions"
+                  placeholder="https://api.example.com/v1"
                 />
               </div>
 
