@@ -1,5 +1,5 @@
 import React from 'react';
-import { FileText, ChevronDown, Paperclip, Camera, X, ArrowRight, MessageSquare, ChevronRight } from 'lucide-react';
+import { FileText, ChevronDown, Paperclip, Camera, X, ArrowRight, MessageSquare, ChevronRight, Settings } from 'lucide-react';
 
 const ClaudeUI = () => {
   const [showMenu, setShowMenu] = React.useState(false);
@@ -10,10 +10,16 @@ const ClaudeUI = () => {
   const [welcomeComplete, setWelcomeComplete] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
   const [textareaContent, setTextareaContent] = React.useState('');
+  const [showSettings, setShowSettings] = React.useState(false);
+  const [modelEndpoint, setModelEndpoint] = React.useState('');
+  const [apiKey, setApiKey] = React.useState('');
   const textareaRef = React.useRef(null);
 
   React.useEffect(() => {
     const savedUsername = localStorage.getItem('claudius_username');
+    const savedModelEndpoint = localStorage.getItem('claudius_model_endpoint');
+    const savedApiKey = localStorage.getItem('claudius_api_key');
+
     if (savedUsername) {
       setUsername(savedUsername);
       setTimeout(() => {
@@ -24,6 +30,9 @@ const ClaudeUI = () => {
       setShowDialog(true);
       setIsLoading(false);
     }
+
+    if (savedModelEndpoint) setModelEndpoint(savedModelEndpoint);
+    if (savedApiKey) setApiKey(savedApiKey);
   }, []);
 
   const getTimeOfDay = () => {
@@ -84,6 +93,30 @@ const ClaudeUI = () => {
     }
   };
 
+  const handleSettingsSave = (e) => {
+    e.preventDefault();
+
+    const previousUsername = localStorage.getItem('claudius_username');
+    const nameChanged = username.trim() !== previousUsername;
+
+    if (username.trim()) {
+      localStorage.setItem('claudius_username', username.trim());
+
+      if (nameChanged) {
+        setDisplayedWelcome('');
+        setWelcomeComplete(false);
+        setTimeout(() => {
+          animateWelcomeMessage(username.trim());
+        }, 100);
+      }
+    }
+
+    localStorage.setItem('claudius_model_endpoint', modelEndpoint.trim());
+    localStorage.setItem('claudius_api_key', apiKey.trim());
+    
+    setShowSettings(false);
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen text-white p-4 relative" style={{ backgroundColor: '#292927' }}>
       <style>
@@ -119,7 +152,7 @@ const ClaudeUI = () => {
       />
 
       <div 
-        className={`fixed left-0 top-1 bottom-1 w-72 backdrop-blur-sm transition-transform duration-160 ease-out z-40 rounded-tr-xl rounded-br-xl`}
+        className={`fixed left-0 top-1 bottom-1 w-72 backdrop-blur-sm transition-transform duration-160 ease-out z-40 rounded-tr-xl rounded-br-xl flex flex-col`}
         style={{ 
           backgroundColor: 'rgba(33, 32, 32, 0.9)',
           transform: showMenu ? 'translateX(0)' : 'translateX(-100%)',
@@ -129,6 +162,17 @@ const ClaudeUI = () => {
         }}
         onMouseLeave={() => setShowMenu(false)}
       >
+        <div className="flex-grow"></div>
+        
+        <div className="p-4 border-t border-gray-700">
+          <div 
+            className="flex items-center gap-2 text-gray-300 hover:text-white transition-colors cursor-pointer px-2 py-1.5 rounded-md hover:bg-white/5"
+            onClick={() => setShowSettings(true)}
+          >
+            <Settings className="w-5 h-5" />
+            <span style={{ fontFamily: '__styreneA_dcab32' }}>Settings</span>
+          </div>
+        </div>
       </div>
 
       <div className="fixed left-0 top-0 bottom-0 w-[30rem] z-0">
@@ -272,6 +316,87 @@ const ClaudeUI = () => {
                 <span className="mr-2" style={{ fontFamily: '__styreneA_dcab32' }}>Continue</span>
                 <ArrowRight size={18} />
               </button>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {showSettings && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center">
+          <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowSettings(false)}></div>
+          <div className="relative z-10 bg-[#3D3D3A] p-8 rounded-2xl shadow-xl max-w-md w-full border border-[rgba(255,255,255,0.15)]">
+            <div className="flex justify-between items-center mb-6">
+              <h2 className="text-3xl font-light" style={{ fontFamily: '__styreneA_dcab32' }}>
+                <span className="text-orange-300 mr-2">✻</span> Settings
+              </h2>
+              <button 
+                onClick={() => setShowSettings(false)}
+                className="text-gray-400 hover:text-white transition-colors"
+              >
+                <X className="w-6 h-6" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSettingsSave}>
+              <div className="mb-4">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  Your Name
+                </label>
+                <input
+                  type="text"
+                  value={username}
+                  onChange={(e) => setUsername(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                />
+              </div>
+              
+              <div className="mb-4">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  Model Endpoint
+                </label>
+                <input
+                  type="text"
+                  value={modelEndpoint}
+                  onChange={(e) => setModelEndpoint(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                  placeholder="https://api.example.com/v1/chat/completions"
+                />
+              </div>
+
+              <div className="mb-6">
+                <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
+                  API Key
+                </label>
+                <input
+                  type="password"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  className="w-full p-3 bg-[#2A2A28] border border-[rgba(255,255,255,0.15)] rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-orange-300"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                  placeholder="sk-..."
+                />
+              </div>
+
+              <div className="flex gap-4">
+                <button
+                  type="button"
+                  onClick={() => setShowSettings(false)}
+                  className="flex-1 py-3 bg-gray-600 hover:bg-gray-700 rounded-lg transition-colors"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                >
+                  Cancel
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors flex items-center justify-center"
+                  style={{ fontFamily: '__styreneA_dcab32' }}
+                >
+                  <span className="mr-2">Save</span>
+                  <ArrowRight size={18} />
+                </button>
+              </div>
             </form>
           </div>
         </div>
