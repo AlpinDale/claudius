@@ -16,15 +16,18 @@ const ClaudeUI = () => {
       <div 
         className="fixed left-0 top-0 bottom-0 w-20 z-50"
         onMouseEnter={() => setShowMenu(true)}
-        onMouseLeave={() => setShowMenu(false)}
       />
 
       <div 
-        className={`fixed left-0 top-0 bottom-0 w-64 backdrop-blur-sm transition-transform duration-300 ease-out z-40`}
+        className={`fixed left-0 top-1 bottom-1 w-72 backdrop-blur-sm transition-transform duration-300 ease-out z-40 rounded-tr-xl rounded-br-xl`}
         style={{ 
           backgroundColor: 'rgba(33, 32, 32, 0.9)',
-          transform: showMenu ? 'translateX(0)' : 'translateX(-100%)'
+          transform: showMenu ? 'translateX(0)' : 'translateX(-100%)',
+          borderRight: '0.25px solid rgba(255, 255, 255, 0.15)',
+          borderTop: '0.25px solid rgba(255, 255, 255, 0.15)',
+          borderBottom: '0.25px solid rgba(255, 255, 255, 0.15)'
         }}
+        onMouseLeave={() => setShowMenu(false)}
       >
       </div>
 
@@ -78,7 +81,10 @@ const ClaudeUI = () => {
           <span className="text-orange-300 mr-2">✻</span> Good {getTimeOfDay()}, Alpin
         </div>
 
-        <div className="w-full max-w-[41rem] rounded-[14px] relative z-10" style={{ backgroundColor: '#3D3D3A' }}>
+        <div className="w-full max-w-[41rem] rounded-[14px] relative z-10" style={{ 
+          backgroundColor: '#3D3D3A',
+          border: '0.25px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="pl-4 pr-2.5 pt-3 pb-4">
             <textarea 
               placeholder="How can Claudius help you today?"
@@ -98,7 +104,10 @@ const ClaudeUI = () => {
           </div>
         </div>
 
-        <div className="w-full max-w-[40rem] rounded-b-xl p-4 flex -mt-2" style={{ backgroundColor: '#242422' }}>
+        <div className="w-full max-w-[40rem] rounded-b-xl p-4 flex -mt-2" style={{ 
+          backgroundColor: '#242422',
+          border: '0.25px solid rgba(255, 255, 255, 0.15)'
+        }}>
           <div className="flex items-center">
             <Paperclip className="w-5 h-5 text-gray-400 mr-2" />
             <Camera className="w-5 h-5 text-gray-400" />
