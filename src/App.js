@@ -3,12 +3,29 @@ import { FileText, ChevronDown, Paperclip, Camera, X, ArrowRight, MessageSquare,
 
 const ClaudeUI = () => {
   const [showMenu, setShowMenu] = React.useState(false);
+  const [textareaHeight, setTextareaHeight] = React.useState('3.25rem');
+  const textareaRef = React.useRef(null);
 
   const getTimeOfDay = () => {
     const hour = new Date().getHours();
     if (hour < 12) return 'morning';
     if (hour < 17) return 'afternoon';
     return 'evening';
+  };
+
+  const handleTextareaInput = () => {
+    const textarea = textareaRef.current;
+    if (!textarea) return;
+    
+    // Reset height to auto to get the correct scrollHeight
+    textarea.style.height = 'auto';
+    
+    // Calculate new height (capped at 400px)
+    const newHeight = Math.min(textarea.scrollHeight, 400);
+    
+    // Set the height
+    textarea.style.height = `${newHeight}px`;
+    setTextareaHeight(`${newHeight}px`);
   };
 
   return (
@@ -81,30 +98,36 @@ const ClaudeUI = () => {
           <span className="text-orange-300 mr-2">✻</span> Good {getTimeOfDay()}, Alpin
         </div>
 
-        <div className="w-full max-w-[41rem] rounded-[14px] relative z-10" style={{ 
+        <div className="flex flex-col gap-1.5 pl-4 pt-2.5 pr-2.5 pb-2.5 items-stretch transition-all duration-200 relative shadow-[0_0.25rem_1.25rem_hsl(var(--always-black)/3.5%)] focus-within:shadow-[0_0.25rem_1.25rem_hsl(var(--always-black)/7.5%)] hover:border-border-200 focus-within:border-border-200 cursor-text z-10 rounded-2xl w-full max-w-[42rem] ml-5" style={{ 
           backgroundColor: '#3D3D3A',
           border: '0.25px solid rgba(255, 255, 255, 0.15)'
         }}>
-          <div className="pl-4 pr-2.5 pt-3 pb-4">
-            <textarea 
-              placeholder="How can Claudius help you today?"
-              className="w-full bg-transparent resize-none outline-none p-0 m-0 mb-4 h-[3.25rem] placeholder-[#9D9A92]"
-              style={{ fontFamily: '__styreneA_dcab32', fontWeight: 300, color: '#F5F4EF' }}
-              rows={2}
-            />
+          <textarea 
+            ref={textareaRef}
+            placeholder="How can Claudius help you today?"
+            className="w-full bg-transparent resize-none outline-none p-0 m-0 mb-4 overflow-y-auto"
+            style={{ 
+              fontFamily: '__styreneA_dcab32', 
+              fontWeight: 300, 
+              color: '#F5F4EF',
+              height: textareaHeight,
+              maxHeight: '400px'
+            }}
+            rows={1}
+            onInput={handleTextareaInput}
+          />
 
-            <div className="flex justify-between items-center">
-              <div className="flex items-center">
-                <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>Meta-Llama-3.1-8B-Instruct</span>
-                <ChevronDown className="w-4 h-4 text-gray-400" />
-              </div>
-              <div className="flex items-center text-gray-400">
-              </div>
+          <div className="flex justify-between items-center">
+            <div className="flex items-center">
+              <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>Meta-Llama-3.1-8B-Instruct</span>
+              <ChevronDown className="w-4 h-4 text-gray-400" />
+            </div>
+            <div className="flex items-center text-gray-400">
             </div>
           </div>
         </div>
 
-        <div className="w-full max-w-[40rem] rounded-b-xl p-4 flex -mt-2" style={{ 
+        <div className="w-full max-w-[41rem] rounded-b-xl p-4 flex -mt-2 ml-5" style={{ 
           backgroundColor: '#242422',
           border: '0.25px solid rgba(255, 255, 255, 0.15)'
         }}>
