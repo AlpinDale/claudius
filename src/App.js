@@ -461,6 +461,19 @@ const ClaudiusUI = () => {
                   )}
                 </div>
                 <div className="flex items-center text-gray-400">
+                  {textareaContent.length > 0 && (
+                    <span 
+                      className="text-xs transition-opacity duration-200 flex items-center"
+                      style={{ 
+                        fontFamily: '__styreneA_dcab32',
+                        animation: 'fade-in 0.5s ease-out forwards',
+                        animationDelay: '0.5s',
+                        opacity: 0
+                      }}
+                    >
+                      Use <code className="mx-1 px-1.5 py-0.5 rounded bg-[#2A2A28] text-gray-300 font-mono text-[10px]">shift+return</code> for new line
+                    </span>
+                  )}
                 </div>
               </div>
             </div>
