@@ -9,6 +9,7 @@ const ClaudeUI = () => {
   const [displayedWelcome, setDisplayedWelcome] = React.useState('');
   const [welcomeComplete, setWelcomeComplete] = React.useState(false);
   const [isLoading, setIsLoading] = React.useState(true);
+  const [textareaContent, setTextareaContent] = React.useState('');
   const textareaRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -32,13 +33,22 @@ const ClaudeUI = () => {
     return 'evening';
   };
 
-  const handleTextareaInput = () => {
+  const handleTextareaInput = (e) => {
     const textarea = textareaRef.current;
     if (!textarea) return;
 
+    setTextareaContent(e.target.value);
+
+    if (e.target.value.trim() === '') {
+      textarea.style.height = '3.25rem';
+      setTextareaHeight('3.25rem');
+      return;
+    }
+
+    const scrollHeight = textarea.scrollHeight;
+
     textarea.style.height = 'auto';
-  
-    const newHeight = Math.min(textarea.scrollHeight, 400);
+    const newHeight = Math.min(scrollHeight, 400);
 
     textarea.style.height = `${newHeight}px`;
     setTextareaHeight(`${newHeight}px`);
@@ -68,8 +78,32 @@ const ClaudeUI = () => {
     }, 50);
   };
 
+  const handleKeyDown = (e) => {
+    if (e.key === 'Enter' && !e.shiftKey) {
+      e.preventDefault();
+    }
+  };
+
   return (
     <div className="flex flex-col items-center min-h-screen text-white p-4 relative" style={{ backgroundColor: '#292927' }}>
+      <style>
+        {`
+          @keyframes pop-in {
+            0% {
+              opacity: 0;
+              transform: scale(0.6);
+            }
+            70% {
+              transform: scale(1.1);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+        `}
+      </style>
+
       <div className="fixed left-3 top-3 z-50 text-xl transition-colors duration-200" 
         style={{ 
           fontFamily: '__copernicus_669e4a', 
@@ -158,6 +192,17 @@ const ClaudeUI = () => {
               backgroundColor: '#3D3D3A',
               border: '0.25px solid rgba(255, 255, 255, 0.15)'
             }}>
+              {textareaContent.trim() !== '' && (
+                <button 
+                  className="absolute top-3 right-3 rounded-xl p-2 transition-all duration-200 z-20 animate-pop-in"
+                  style={{ 
+                    backgroundColor: '#A3512B',
+                    animation: 'pop-in 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards'
+                  }}
+                >
+                  <ArrowRight className="w-4 h-4 text-white transform -rotate-90" />
+                </button>
+              )}
               <textarea 
                 ref={textareaRef}
                 placeholder="How can Claudius help you today?"
@@ -170,7 +215,10 @@ const ClaudeUI = () => {
                   maxHeight: '400px'
                 }}
                 rows={1}
+                value={textareaContent}
+                onChange={handleTextareaInput}
                 onInput={handleTextareaInput}
+                onKeyDown={handleKeyDown}
               />
 
               <div className="flex justify-between items-center">
