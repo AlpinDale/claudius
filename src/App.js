@@ -15,6 +15,10 @@ const ClaudeUI = () => {
   const [apiKey, setApiKey] = React.useState('');
   const [modelName, setModelName] = React.useState('No Model Available');
   const [isModelLoading, setIsModelLoading] = React.useState(false);
+  const [availableModels, setAvailableModels] = React.useState([]);
+  const [showModelMenu, setShowModelMenu] = React.useState(false);
+  const [showMoreModels, setShowMoreModels] = React.useState(false);
+  const modelMenuRef = React.useRef(null);
   const textareaRef = React.useRef(null);
 
   React.useEffect(() => {
@@ -126,25 +130,48 @@ const ClaudeUI = () => {
           'Content-Type': 'application/json'
         }
       });
-      
+
       if (!response.ok) {
         throw new Error(`API request failed with status ${response.status}`);
       }
-      
+
       const data = await response.json();
-      
+
       if (data.data && data.data.length > 0) {
+        setAvailableModels(data.data.map(model => model.id));
         setModelName(data.data[0].id);
       } else {
         setModelName('No Model Available');
+        setAvailableModels([]);
       }
     } catch (error) {
       console.error('Error fetching model info:', error);
       setModelName('No Model Available');
+      setAvailableModels([]);
     } finally {
       setIsModelLoading(false);
     }
   };
+
+  const handleModelSelect = (model) => {
+    setModelName(model);
+    setShowModelMenu(false);
+    setShowMoreModels(false);
+  };
+
+  React.useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (modelMenuRef.current && !modelMenuRef.current.contains(event.target)) {
+        setShowModelMenu(false);
+        setShowMoreModels(false);
+      }
+    };
+
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   const handleSettingsSave = (e) => {
     e.preventDefault();
@@ -166,11 +193,11 @@ const ClaudeUI = () => {
 
     localStorage.setItem('claudius_model_endpoint', modelEndpoint.trim());
     localStorage.setItem('claudius_api_key', apiKey.trim());
-    
+
     if (modelEndpoint.trim() && apiKey.trim()) {
       fetchModelInfo(modelEndpoint.trim(), apiKey.trim());
     }
-    
+
     setShowSettings(false);
   };
 
@@ -185,6 +212,17 @@ const ClaudeUI = () => {
             }
             70% {
               transform: scale(1.1);
+            }
+            100% {
+              opacity: 1;
+              transform: scale(1);
+            }
+          }
+
+          @keyframes fade-in {
+            0% {
+              opacity: 0;
+              transform: scale(0.95);
             }
             100% {
               opacity: 1;
@@ -323,11 +361,106 @@ const ClaudeUI = () => {
               />
 
               <div className="flex justify-between items-center">
-                <div className="flex items-center">
-                  <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>
-                    {isModelLoading ? 'Loading model...' : modelName}
-                  </span>
-                  <ChevronDown className="w-4 h-4 text-gray-400" />
+                <div className="flex items-center relative" ref={modelMenuRef}>
+                  <div 
+                    className="flex items-center cursor-pointer px-2 py-1 rounded-md hover:bg-[#4D4D4A] transition-all duration-200"
+                    onClick={() => setShowModelMenu(!showModelMenu)}
+                  >
+                    <span className="mr-2" style={{ fontFamily: '__copernicus_669e4a', fontWeight: 500, color: '#F2F1EC' }}>
+                      {isModelLoading ? 'Loading model...' : modelName}
+                    </span>
+                    <ChevronDown className="w-4 h-4 text-gray-400" />
+                  </div>
+
+                  {showModelMenu && availableModels.length > 0 && (
+                    <div 
+                      className="absolute top-full left-0 mt-1 border border-[rgba(255,255,255,0.15)] rounded-lg shadow-lg overflow-visible z-30 w-72 animate-fade-in"
+                      style={{ 
+                        backgroundColor: '#30302E',
+                        animation: 'fade-in 0.15s ease-out forwards',
+                        transformOrigin: 'top left'
+                      }}
+                    >
+                      {availableModels.slice(0, 4).map((model, index) => (
+                        <div 
+                          key={index}
+                          className="px-4 py-2 hover:bg-[#3D3D3A] cursor-pointer"
+                          onClick={() => handleModelSelect(model)}
+                        >
+                          <div className="flex items-center justify-between">
+                            <span 
+                              className="truncate pr-2" 
+                              style={{ fontFamily: '__styreneA_dcab32' }}
+                              title={model}
+                            >
+                              {model}
+                            </span>
+                            <div className="w-5 flex-shrink-0 flex justify-center">
+                              {model === modelName && (
+                                <span className="text-orange-400">✓</span>
+                              )}
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {availableModels.length > 4 && (
+                        <div 
+                          className="px-4 py-2 bg-[#3D3D3A] hover:bg-[#4D4D4A] cursor-pointer border-t border-[rgba(255,255,255,0.1)] flex items-center justify-between relative"
+                          onClick={() => {
+                            console.log("More models clicked, current state:", showMoreModels);
+                            setShowMoreModels(!showMoreModels);
+                          }}
+                        >
+                          <span style={{ fontFamily: '__styreneA_dcab32' }}>More models</span>
+                          <ChevronRight className="w-4 h-4" />
+
+                          {showMoreModels && availableModels.length > 4 && (
+                            <div 
+                              className="absolute left-[100%] top-[-1px] border border-[rgba(255,255,255,0.15)] rounded-lg shadow-lg z-40 w-72"
+                              style={{ 
+                                backgroundColor: '#30302E',
+                                animation: 'fade-in 0.15s ease-out forwards',
+                                maxHeight: '50vh',
+                                overflowY: 'auto',
+                                overflowX: 'hidden',
+                                position: 'absolute',
+                                maxHeight: 'calc(100vh - 100px)',
+                              }}
+                            >
+                              <div className="max-h-[50vh] overflow-y-auto">
+                                {availableModels.slice(4).map((model, index) => (
+                                  <div 
+                                    key={index}
+                                    className="px-4 py-2 hover:bg-[#3D3D3A] cursor-pointer"
+                                    onClick={(e) => {
+                                      e.stopPropagation();
+                                      handleModelSelect(model);
+                                    }}
+                                  >
+                                    <div className="flex items-center justify-between">
+                                      <span 
+                                        className="truncate pr-2"
+                                        style={{ fontFamily: '__styreneA_dcab32' }}
+                                        title={model}
+                                      >
+                                        {model}
+                                      </span>
+                                      <div className="w-5 flex-shrink-0 flex justify-center">
+                                        {model === modelName && (
+                                          <span className="text-orange-400">✓</span>
+                                        )}
+                                      </div>
+                                    </div>
+                                  </div>
+                                ))}
+                              </div>
+                            </div>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  )}
                 </div>
                 <div className="flex items-center text-gray-400">
                 </div>
@@ -369,7 +502,7 @@ const ClaudeUI = () => {
                   autoFocus
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
                   Model Endpoint
@@ -397,7 +530,7 @@ const ClaudeUI = () => {
                   placeholder="sk-..."
                 />
               </div>
-              
+
               <button
                 type="submit"
                 className="w-full py-3 bg-orange-500 hover:bg-orange-600 rounded-lg transition-colors flex items-center justify-center"
@@ -440,7 +573,7 @@ const ClaudeUI = () => {
                   style={{ fontFamily: '__styreneA_dcab32' }}
                 />
               </div>
-              
+
               <div className="mb-4">
                 <label className="block mb-2 text-gray-300" style={{ fontFamily: '__styreneA_dcab32' }}>
                   Model Endpoint
