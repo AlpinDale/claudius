@@ -30,13 +30,22 @@ const ClaudeUI = () => {
 
   return (
     <div className="flex flex-col items-center min-h-screen text-white p-4 relative" style={{ backgroundColor: '#292927' }}>
+      <div className="fixed left-3 top-3 z-50 text-xl transition-colors duration-200" 
+        style={{ 
+          fontFamily: '__copernicus_669e4a', 
+          fontWeight: 600, 
+          color: showMenu ? '#F2F1EC' : '#C5C4BF'
+        }}>
+        Claudius
+      </div>
+
       <div 
         className="fixed left-0 top-0 bottom-0 w-20 z-50"
         onMouseEnter={() => setShowMenu(true)}
       />
 
       <div 
-        className={`fixed left-0 top-1 bottom-1 w-72 backdrop-blur-sm transition-transform duration-300 ease-out z-40 rounded-tr-xl rounded-br-xl`}
+        className={`fixed left-0 top-1 bottom-1 w-72 backdrop-blur-sm transition-transform duration-160 ease-out z-40 rounded-tr-xl rounded-br-xl`}
         style={{ 
           backgroundColor: 'rgba(33, 32, 32, 0.9)',
           transform: showMenu ? 'translateX(0)' : 'translateX(-100%)',
