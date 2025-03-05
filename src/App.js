@@ -1,7 +1,7 @@
 import React from 'react';
 import { FileText, ChevronDown, Paperclip, Camera, X, ArrowRight, MessageSquare, ChevronRight, Settings } from 'lucide-react';
 
-const ClaudeUI = () => {
+const ClaudiusUI = () => {
   const [showMenu, setShowMenu] = React.useState(false);
   const [textareaHeight, setTextareaHeight] = React.useState('3.25rem');
   const [username, setUsername] = React.useState('');
@@ -77,16 +77,14 @@ const ClaudeUI = () => {
     e.preventDefault();
     if (username.trim()) {
       localStorage.setItem('claudius_username', username.trim());
-      
-      // Save API information if provided
+
       if (modelEndpoint.trim()) {
         localStorage.setItem('claudius_model_endpoint', modelEndpoint.trim());
       }
       if (apiKey.trim()) {
         localStorage.setItem('claudius_api_key', apiKey.trim());
       }
-      
-      // Fetch model info if both endpoint and API key are provided
+
       if (modelEndpoint.trim() && apiKey.trim()) {
         fetchModelInfo(modelEndpoint.trim(), apiKey.trim());
       }
@@ -119,7 +117,7 @@ const ClaudeUI = () => {
 
   const fetchModelInfo = async (endpoint, key) => {
     if (!endpoint || !key) return;
-    
+
     setIsModelLoading(true);
     try {
       const modelsUrl = `${endpoint}/models`;
@@ -628,4 +626,4 @@ const ClaudeUI = () => {
   );
 };
 
-export default ClaudeUI;
+export default ClaudiusUI;
